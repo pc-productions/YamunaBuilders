@@ -10,7 +10,7 @@ rebuild it later, independent of the agency that ran the original WordPress site
 | `scripts/scrape_yamunabuilders.py` | The crawler that produced the archive; re-run via the Actions workflow to refresh. |
 | `docs/MIRROR_HOSTING.md` | How to host the mirror for free (Cloudflare Pages), what differs from the live site, domain notes. |
 | `docs/WORDPRESS_EXPORT_GUIDE.md` | What was exported from wp-admin and where the full UpdraftPlus backup lives (Google Drive). |
-| `.github/workflows/` | `scrape-yamunabuilders.yml` (refresh the archive), `transcode-videos.yml` (web-sized videos). Both run manually from the Actions tab. |
+| `.github/workflows/` | `deploy.yml` (build + deploy to Cloudflare on every push to `main`), `scrape-yamunabuilders.yml` (refresh the archive: **only meaningful while the agency's WordPress site is still what yamunabuilders.com serves**; after the domain points at this mirror the crawler would only copy the mirror), `transcode-videos.yml` (web-sized videos), `fetch-url.yml` (helper). |
 
 ## Quick start
 
@@ -29,6 +29,15 @@ python3 -m http.server -d dist 8080      # preview at http://localhost:8080
 - Fonts: the original used Adobe Fonts kit `nmv4gyz` (Ofelia Display, The Seasons); the mirror uses
   Nunito Sans and Cormorant Garamond from Google Fonts instead (no Adobe account needed).
 - Analytics: GTM `GTM-NXVV44J6`, GA4 `G-YWB3RH6HGV`, Microsoft Clarity.
+
+## What the backup covers
+
+- Every public page, post, image, PDF, video, stylesheet and script the site served (this archive),
+  plus the WordPress REST data behind the blog grid (posts, media, users, categories).
+- Server-side behaviour that a static copy cannot run is reproduced in the mirror build: the blog
+  grid's "Load More"/filters (pre-rendered), forms (e-mail hand-off), redirects and sitemap.
+- Everything else (form settings, popups configuration, theme options, plugin settings, the full
+  database) is in the UpdraftPlus backup below and can be restored on any WordPress host.
 
 ## Full backup
 

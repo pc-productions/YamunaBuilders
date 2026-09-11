@@ -29,6 +29,12 @@ Build settings (environment variables, all optional):
   On the mirror the OTP and Turnstile pieces are hidden. Submitting the contact form opens the
   visitor's e-mail app with a pre-filled message to `yamunahomes16@gmail.com`; the brochure form
   goes straight to the brochure page. Phone, WhatsApp and e-mail links work unchanged.
+- **Insights page ("Load More" and category filters).** The theme's post grid fetched further posts
+  and filtered categories through WordPress AJAX. The mirror pre-renders all 35 posts into the grid
+  from the archived API data (`api/posts.json`, `media.json`, `users.json`, `categories.json`), the
+  category filters work in the browser (`/mirror/postgrid.js`), and the now-pointless "Load More"
+  button is hidden. Any other WordPress AJAX call receives `0` from `/wp-admin/admin-ajax.php`,
+  which is what WordPress itself answers for unknown actions, so nothing can inject a page.
 - **Comments** on blog posts are removed (they posted to WordPress). Existing comments are not shown.
 - **Search** returns the homepage.
 - **Videos.** Two background loops were 180 MB and 139 MB; the mirror uses muted 720p re-encodes

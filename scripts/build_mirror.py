@@ -122,9 +122,39 @@ FORMS_JS = r"""
 })();
 """
 
+POSTGRID_JS = r"""
+/* Static-mirror replacement for Salient's post-grid AJAX (filters + load more).
+   Every post is pre-rendered at build time, so filtering is done in the browser. */
+(function () {
+  function apply(wrap, slug) {
+    wrap.querySelectorAll('.nectar-post-grid-item').forEach(function (it) {
+      var cats = ' ' + (it.getAttribute('data-categories') || '') + ' ';
+      var show = slug === '-1' || cats.indexOf(' ' + slug + ' ') !== -1;
+      it.style.display = show ? '' : 'none';
+    });
+    var grid = wrap.querySelector('.nectar-post-grid');
+    if (grid) window.dispatchEvent(new Event('resize'));
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('.nectar-post-grid-filters a');
+    if (!a) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    var wrap = a.closest('.nectar-post-grid-wrap');
+    wrap.querySelectorAll('.nectar-post-grid-filters a').forEach(function (x) { x.classList.remove('active'); });
+    a.classList.add('active');
+    apply(wrap, a.getAttribute('data-filter'));
+  }, true);
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.load-more-wrap')) { e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true);
+})();
+"""
+
 MIRROR_CSS = """
 /* static mirror: hide backend-only controls */
 .wpcf7-turnstile, .cf-turnstile, [data-name="verification-otp"], .evcf7_send_otp, .evcf7-send-otp { display: none !important; }
+/* all posts are pre-rendered; the theme's load-more button has nothing to fetch */
+.nectar-post-grid-wrap .load-more-wrap { display: none !important; }
 """
 
 
@@ -158,6 +188,8 @@ def rewrite_text(txt, mirror_paths, site_url):
         return original if original in mirror_paths else variant
     txt = RESIZED_RE.sub(fix_img, txt)
     txt = FONT_RE.sub(lambda m: FONT_MAP[m.group(1).lower()], txt)
+    # Popup Maker analytics would POST to the WordPress REST API on every popup open
+    txt = txt.replace('"analytics_enabled":"1"', '"analytics_enabled":"0"')
     return txt
 
 
@@ -167,8 +199,129 @@ def _bare(txt, m):
     return end >= len(txt) or txt[end] in "\"' <)"
 
 
-def clean_html(html, page_url, site_url, cfg):
+AVATARS = {
+    "Yamuna Builders": "https://secure.gravatar.com/avatar/a3dfc3a93d2b34cc07c6e140bfe4e60d1c6ac34fd0c38101094b733097227e46",
+    "Hazrath Mohammed": "https://secure.gravatar.com/avatar/f1b8a84b9af65469361f1859dd3da9aaca00c10d22324863f19ac0634083f062",
+}
+_WP = {}
+
+
+def wp_data():
+    """Posts, users, categories and media from the archived REST API dumps."""
+    if not _WP:
+        api = os.path.join(SRC, "api")
+        def load(n):
+            f = os.path.join(api, n + ".json")
+            return json.load(open(f, encoding="utf-8")) if os.path.exists(f) else []
+        _WP["posts"] = sorted(load("posts"), key=lambda x: x["date"], reverse=True)
+        _WP["users"] = {u["id"]: u for u in load("users")}
+        _WP["cats"] = {c["id"]: c for c in load("categories")}
+        _WP["media"] = {m["id"]: m for m in load("media")}
+    return _WP
+
+
+def complete_post_grids(soup, mirror_paths):
+    """Salient post grids paginate/filter through WordPress AJAX. Pre-render every post so the
+    static copy needs neither, and tag items with their category slugs for client-side filters."""
+    import copy
+    import html as htmlmod
+    changed = False
+    for wrap in soup.select(".nectar-post-grid-wrap"):
+        try:
+            settings = json.loads(wrap.get("data-el-settings", "{}"))
+            query = json.loads(wrap.get("data-query", "{}"))
+        except ValueError:
+            continue
+        if query.get("post_type") != "post":
+            continue
+        grid = wrap.select_one(".nectar-post-grid")
+        items = wrap.select(".nectar-post-grid-item")
+        if grid is None or not items:
+            continue
+        data = wp_data()
+        # tag existing items with category slugs (from the category button's class)
+        for it in items:
+            slugs = [c for a in it.select(".meta-category a") for c in a.get("class", []) if c != "style-button"]
+            it["data-categories"] = " ".join(slugs)
+        if settings.get("pagination") != "load-more":
+            continue
+        have = {it.get("data-post-id") for it in items}
+        template = items[0]
+        for post in data["posts"]:
+            pid = str(post["id"])
+            if pid in have:
+                continue
+            it = copy.copy(template)
+            it["data-post-id"] = pid
+            title = htmlmod.unescape(post["title"]["rendered"])
+            link = url_path(post["link"])
+            m = data["media"].get(post.get("featured_media"))
+            img = it.select_one("img.nectar-post-grid-item-bg__media")
+            if m and img is not None:
+                full = url_path(m["source_url"])
+                sizes = (m.get("media_details") or {}).get("sizes", {})
+                cands = []
+                for sz in sizes.values():
+                    pth = url_path(sz["source_url"])
+                    if pth in mirror_paths and sz.get("width"):
+                        cands.append((int(sz["width"]), pth))
+                if full in mirror_paths:
+                    w = (m.get("media_details") or {}).get("width") or 1920
+                    cands.append((int(w), full))
+                cands = sorted(set(cands))
+                if cands:
+                    best = max(cands, key=lambda c: c[0] if c[0] <= 1200 else 0)
+                    img["data-nectar-img-src"] = best[1]
+                    img["data-nectar-img-srcset"] = ", ".join(f"{p} {w}w" for w, p in cands)
+                    img["alt"] = m.get("alt_text") or ""
+                    md = m.get("media_details") or {}
+                    if md.get("width") and md.get("height"):
+                        img["width"], img["height"] = str(md["width"]), str(md["height"])
+                        img["src"] = ("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'"
+                                      f"%20viewBox%3D'0%200%20{md['width']}%20{md['height']}'%2F%3E")
+                it["data-has-img"] = "true"
+            elif img is not None:
+                it["data-has-img"] = "false"
+            a = it.select_one("a.nectar-post-grid-link")
+            if a is not None:
+                a["href"] = link
+                sr = a.select_one(".screen-reader-text")
+                if sr is not None:
+                    sr.string = title
+            h = it.select_one(".post-heading span") or it.select_one(".post-heading")
+            if h is not None:
+                h.string = title
+            cats = [data["cats"][c] for c in post.get("categories", []) if c in data["cats"] and data["cats"][c]["slug"] != "uncategorized"]
+            mc = it.select_one(".meta-category")
+            if mc is not None:
+                mc.clear()
+                for c in cats[:1]:
+                    ca = soup.new_tag("a", href=f"/category/{c['slug']}/")
+                    ca["class"] = [c["slug"], "style-button"]
+                    ca.string = htmlmod.unescape(c["name"])
+                    mc.append(ca)
+            it["data-categories"] = " ".join(c["slug"] for c in cats)
+            author = data["users"].get(post.get("author"), {}).get("name", "")
+            an = it.select_one(".meta-author-name")
+            if an is not None:
+                an.string = author
+            av = it.select_one(".meta-author img")
+            if av is not None and author in AVATARS:
+                av["alt"] = author
+                av["src"] = AVATARS[author] + "?s=40&d=mm&r=g"
+                av["srcset"] = AVATARS[author] + "?s=80&d=mm&r=g 2x"
+            rt = it.select_one(".meta-reading-time")
+            if rt is not None:
+                words = len(BeautifulSoup(post["content"]["rendered"], "lxml").get_text(" ").split())
+                rt.string = f"{max(1, round(words / 200))} min"
+            grid.append(it)
+            changed = True
+    return changed
+
+
+def clean_html(html, page_url, site_url, cfg, mirror_paths=frozenset()):
     soup = BeautifulSoup(html, "lxml")
+    grids_completed = complete_post_grids(soup, mirror_paths)
     # WordPress backend links that make no sense on a static host
     for sel in ['link[rel="https://api.w.org/"]', 'link[rel="alternate"][type="application/json"]',
                 'link[rel="EditURI"]', 'link[rel="wlwmanifest"]', 'link[rel="shortlink"]',
@@ -216,6 +369,9 @@ def clean_html(html, page_url, site_url, cfg):
     body.append(conf)
     js = soup.new_tag("script", src="/mirror/forms.js", id="mirror-forms-js")
     body.append(js)
+    if soup.select_one(".nectar-post-grid-wrap"):
+        pg = soup.new_tag("script", src="/mirror/postgrid.js", id="mirror-postgrid-js")
+        body.append(pg)
     note = f"<!-- static mirror of {page_url} built {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} -->"
     return str(soup).replace("</html>", note + "\n</html>", 1)
 
@@ -376,7 +532,7 @@ def main():
             continue
         html = open(os.path.join(SRC, p["html_file"]), encoding="utf-8", errors="ignore").read()
         html = rewrite_text(html, mirror_paths, args.site_url)
-        html = clean_html(html, p["final_url"], args.site_url, cfg)
+        html = clean_html(html, p["final_url"], args.site_url, cfg, mirror_paths)
         dest = page_dest(out, p["final_url"])
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         open(dest, "w", encoding="utf-8").write(html)
@@ -386,6 +542,10 @@ def main():
     # ---- helpers, redirects, sitemap, robots, 404 ---------------------------------------
     os.makedirs(os.path.join(out, "mirror"), exist_ok=True)
     open(os.path.join(out, "mirror", "forms.js"), "w", encoding="utf-8").write(FORMS_JS)
+    open(os.path.join(out, "mirror", "postgrid.js"), "w", encoding="utf-8").write(POSTGRID_JS)
+    # WordPress AJAX endpoint: answer "0" like WordPress does for unknown actions, never a page
+    os.makedirs(os.path.join(out, "wp-admin"), exist_ok=True)
+    open(os.path.join(out, "wp-admin", "admin-ajax.php"), "w").write("0")
     with open(os.path.join(out, "_redirects"), "w") as f:
         for a, b in redirects:
             f.write(f"{a} {b} 301\n")
@@ -395,7 +555,6 @@ def main():
                     "/uig_image_gallery-sitemap.xml", "/wp-sitemap.xml", "/sitemap.xml.gz"):
             f.write(f"{old} /sitemap.xml 301\n")
         f.write("/feed/ / 302\n")
-        f.write("/wp-admin/* / 302\n")
         f.write("/wp-login.php / 302\n")
     with open(os.path.join(out, "_headers"), "w") as f:
         f.write("/wp-content/*\n  Cache-Control: public, max-age=31536000, immutable\n")
@@ -409,9 +568,14 @@ def main():
             f.write(f"  <url><loc>{base}{path}</loc></url>\n")
         f.write("</urlset>\n")
     open(os.path.join(out, "robots.txt"), "w").write(f"User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n")
-    home = open(os.path.join(out, "index.html"), encoding="utf-8").read()
     open(os.path.join(out, "404.html"), "w", encoding="utf-8").write(
-        home.replace("<title>", "<title>Page not found - ", 1))
+        "<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>"
+        "<meta name='robots' content='noindex'><title>Page not found - Yamuna Homes and Design</title>"
+        "<style>body{margin:0;font-family:'Nunito Sans',Helvetica,Arial,sans-serif;background:#fff;color:#222;display:flex;"
+        "min-height:100vh;align-items:center;justify-content:center;text-align:center}main{padding:40px}h1{font-weight:400;"
+        "font-size:28px}a{color:#a11d1d}</style></head><body><main><h1>Page not found</h1>"
+        "<p>The page you were looking for is not here.</p><p><a href='/'>Go to the homepage</a> · "
+        "<a href='/insights/'>Insights</a> · <a href='/contact/'>Contact</a></p></main></body></html>")
     # ---- keep only the media the pages actually use; resolve names scripts derive -------
     kept, missing = prune_uploads(out, manifest, mirror_paths)
     log(f"uploads kept: {kept} | referenced but unavailable: {len(missing)}")
