@@ -14,6 +14,10 @@ current task.
 - `docs/MIRROR_HOSTING.md` — what differs from the live site and hosting notes.
 - `docs/WORDPRESS_EXPORT_GUIDE.md` — the WordPress backup (full UpdraftPlus backup is in Google Drive).
 
+Branch rules: make every change on the `staging` branch (auto-deploys to the noindex preview
+`https://yamunabuilders-staging.yamunabuilders-mirror.workers.dev`). Merge `staging` into `main`
+only when the owner explicitly says "Push to Prod"; that merge deploys https://yamunabuilders.com.
+
 Rules: never commit secrets or the database backup (the repo may become public); keep `archive/`
 untouched; run `python3 scripts/build_mirror.py` and check `dist/` before deploying; commit messages
 in plain imperative English.

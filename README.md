@@ -12,6 +12,16 @@ rebuild it later, independent of the agency that ran the original WordPress site
 | `docs/WORDPRESS_EXPORT_GUIDE.md` | What was exported from wp-admin and where the full UpdraftPlus backup lives (Google Drive). |
 | `.github/workflows/` | `deploy.yml` (build + deploy to Cloudflare on every push to `main`), `scrape-yamunabuilders.yml` (refresh the archive: **only meaningful while the agency's WordPress site is still what yamunabuilders.com serves**; after the domain points at this mirror the crawler would only copy the mirror), `transcode-videos.yml` (web-sized videos), `fetch-url.yml` (helper). |
 
+## Editing workflow: staging first, production on request
+
+| Branch | Deploys to | When |
+|---|---|---|
+| `staging` | https://yamunabuilders-staging.yamunabuilders-mirror.workers.dev (noindex, "PREVIEW BUILD" badge) | automatically on every push |
+| `main` | https://yamunabuilders.com | only when `staging` is merged into `main` ("Push to Prod") |
+
+All edits are made on `staging` and checked on the preview address. Nothing reaches the live site
+until the merge into `main`, which is the explicit "Push to Prod" step.
+
 ## Quick start
 
 ```sh

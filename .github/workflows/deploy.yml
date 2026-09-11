@@ -1,8 +1,10 @@
 name: Deploy mirror to Cloudflare
 
+# main    -> production  (yamunabuilders.com)            : only when staging is merged ("Push to Prod")
+# staging -> preview     (yamunabuilders-staging.*.workers.dev, noindex, PREVIEW badge)
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
     paths-ignore:
       - "docs/**"
       - "README.md"
@@ -12,7 +14,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: deploy-cloudflare
+  group: deploy-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -25,19 +27,40 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - name: Build static mirror
+
+      - name: Build (production)
+        if: github.ref_name == 'main'
         env:
-          # The production address. Canonical tags, og:url and sitemap.xml use it.
           MIRROR_SITE_URL: https://yamunabuilders.com
           WEB3FORMS_KEY: ${{ secrets.WEB3FORMS_KEY }}
         run: python3 scripts/build_mirror.py
+
+      - name: Build (staging preview)
+        if: github.ref_name != 'main'
+        env:
+          MIRROR_SITE_URL: https://yamunabuilders-staging.yamunabuilders-mirror.workers.dev
+          MIRROR_NOINDEX: "1"
+          WEB3FORMS_KEY: ${{ secrets.WEB3FORMS_KEY }}
+        run: python3 scripts/build_mirror.py
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Deploy (Cloudflare Workers static assets)
+
+      - name: Deploy to production
+        if: github.ref_name == 'main'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4"
           command: deploy
+
+      - name: Deploy to staging preview
+        if: github.ref_name != 'main'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4"
+          command: deploy --env staging

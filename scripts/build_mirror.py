@@ -372,6 +372,17 @@ def clean_html(html, page_url, site_url, cfg, mirror_paths=frozenset()):
     if soup.select_one(".nectar-post-grid-wrap"):
         pg = soup.new_tag("script", src="/mirror/postgrid.js", id="mirror-postgrid-js")
         body.append(pg)
+    if os.environ.get("MIRROR_NOINDEX") == "1":
+        for el in soup.select('meta[name="robots"]'):
+            el.decompose()
+        head.append(soup.new_tag("meta", attrs={"name": "robots", "content": "noindex, nofollow"}))
+        badge = soup.new_tag("div", id="mirror-preview-badge")
+        badge.string = "PREVIEW BUILD"
+        st = soup.new_tag("style")
+        st.string = ("#mirror-preview-badge{position:fixed;left:12px;bottom:12px;z-index:99999;background:#111;color:#fff;"
+                     "font:600 11px/1 Arial,sans-serif;letter-spacing:.08em;padding:8px 10px;border-radius:4px;opacity:.85;pointer-events:none}")
+        head.append(st)
+        body.append(badge)
     note = f"<!-- static mirror of {page_url} built {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} -->"
     return str(soup).replace("</html>", note + "\n</html>", 1)
 
@@ -567,7 +578,10 @@ def main():
                 continue
             f.write(f"  <url><loc>{base}{path}</loc></url>\n")
         f.write("</urlset>\n")
-    open(os.path.join(out, "robots.txt"), "w").write(f"User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n")
+    if os.environ.get("MIRROR_NOINDEX") == "1":
+        open(os.path.join(out, "robots.txt"), "w").write("User-agent: *\nDisallow: /\n")
+    else:
+        open(os.path.join(out, "robots.txt"), "w").write(f"User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n")
     open(os.path.join(out, "404.html"), "w", encoding="utf-8").write(
         "<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>"
         "<meta name='robots' content='noindex'><title>Page not found - Yamuna Homes and Design</title>"
