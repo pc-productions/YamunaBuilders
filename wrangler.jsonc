@@ -1,0 +1,12 @@
+{
+  // Cloudflare Workers "static assets" deployment of the yamunabuilders.com mirror.
+  // Build first (python3 scripts/build_mirror.py), then `npx wrangler deploy`.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "yamunabuilders",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}

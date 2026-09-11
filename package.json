@@ -1,0 +1,14 @@
+{
+  "name": "yamunabuilders-mirror",
+  "private": true,
+  "description": "Static mirror of yamunabuilders.com, deployed to Cloudflare Workers static assets",
+  "scripts": {
+    "build": "python3 scripts/build_mirror.py",
+    "preview": "python3 -m http.server -d dist 8080",
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:pages": "npm run build && wrangler pages deploy dist --project-name yamunabuilders"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}

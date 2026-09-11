@@ -1,0 +1,41 @@
+name: Deploy mirror to Cloudflare
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "README.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-cloudflare
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Build static mirror
+        env:
+          MIRROR_SITE_URL: ${{ vars.MIRROR_SITE_URL }}
+          WEB3FORMS_KEY: ${{ secrets.WEB3FORMS_KEY }}
+        run: python3 scripts/build_mirror.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Deploy (Cloudflare Workers static assets)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
