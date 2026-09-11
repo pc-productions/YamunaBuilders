@@ -36,11 +36,11 @@ Build settings (environment variables, all optional):
 - **One PDF** (`YamunaSkyCity_Brochure.pdf`, 28 MB) is not copied. No page links to it; the brochure
   pages use image spreads. It remains in the archive and the Google Drive backup.
 - **PWA / service worker** and WordPress REST, feed, pingback and oEmbed links are removed.
-- **Fonts.** Headings and body text use Adobe Fonts (Typekit kit `nmv4gyz`: *Ofelia Display* and
-  *The Seasons*). Adobe only serves a kit on domains its owner has approved. The mirror keeps the
-  kit link and, if the fonts do not load on the new domain, swaps in Poppins and Cormorant Garamond
-  from Google Fonts automatically. To keep the exact typefaces, whoever owns the Adobe Fonts
-  account adds the new domain under Web Projects → kit `nmv4gyz` → Domains.
+- **Fonts.** The original used Adobe Fonts (kit `nmv4gyz`: *Ofelia Display* for body/nav/small
+  headings, *The Seasons* for H1–H3), which only serves domains the kit owner approved. The mirror
+  replaces them with free look-alikes from Google Fonts: **Nunito Sans** for Ofelia Display and
+  **Cormorant Garamond** for The Seasons. Sizes, weights, spacing and colours are unchanged. To pick
+  different substitutes, edit `FONT_MAP` and `GOOGLE_FONTS_CSS` in `scripts/build_mirror.py`.
 - Google Tag Manager, GA4 and Microsoft Clarity tags are unchanged and keep reporting.
 
 ## Hosting for free: Cloudflare Pages (recommended)

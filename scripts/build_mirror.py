@@ -30,6 +30,14 @@ HOST_ESC_RE = re.compile(r"https?:\\/\\/(?:www\.)?yamunabuilders\.com")
 PROTO_REL_RE = re.compile(r"(?<=['\"(])//(?:www\.)?yamunabuilders\.com")
 RESIZED_RE = re.compile(r"(/wp-content/uploads/[^\s\"'()<>?]+?)-(\d{2,5})x(\d{2,5})(\.(?:webp|jpe?g|png|gif|avif))", re.I)
 TEXT_EXT = (".css", ".js", ".json", ".svg", ".xml", ".txt", ".html")
+# Adobe Fonts (Typekit kit nmv4gyz) families -> free look-alikes served by Google Fonts
+FONT_MAP = {
+    "ofelia-display": '"Nunito Sans", "Helvetica Neue", Arial, sans-serif',   # body, nav, h4-h6
+    "the-seasons": '"Cormorant Garamond", Georgia, "Times New Roman", serif',  # h1-h3 display serif
+}
+FONT_RE = re.compile(r"(?<![\w-])(ofelia-display|the-seasons)(?![\w-])", re.I)
+GOOGLE_FONTS_CSS = ("https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400"
+                    "&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap")
 
 FORMS_JS = r"""
 /* Static-mirror replacement for Contact Form 7 (no WordPress backend behind this copy). */
@@ -114,39 +122,6 @@ FORMS_JS = r"""
 })();
 """
 
-FONTS_JS = r"""
-/* Adobe Fonts (Typekit kit nmv4gyz) only serves domains its owner approved. If the kit's
-   families are not available on this host, swap in similar Google Fonts at runtime. */
-(function () {
-  var MAP = { 'ofelia-display': 'Poppins', 'the-seasons': 'Cormorant Garamond' };
-  var GF = 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap';
-  function swap() {
-    var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = GF; document.head.appendChild(l);
-    function fix(v) { return v.replace(/ofelia-display/gi, "'Poppins'").replace(/the-seasons/gi, "'Cormorant Garamond'"); }
-    Array.prototype.forEach.call(document.styleSheets, function (ss) {
-      var rules; try { rules = ss.cssRules; } catch (e) { return; }
-      if (!rules) return;
-      (function walk(rs) {
-        Array.prototype.forEach.call(rs, function (r) {
-          if (r.style && r.style.fontFamily && /ofelia-display|the-seasons/i.test(r.style.fontFamily)) {
-            try { r.style.setProperty('font-family', fix(r.style.fontFamily), r.style.getPropertyPriority('font-family')); } catch (e) {}
-          }
-          if (r.cssRules) walk(r.cssRules);
-        });
-      })(rules);
-    });
-    document.querySelectorAll('[style*="ofelia"], [style*="seasons"]').forEach(function (el) {
-      el.style.fontFamily = fix(el.style.fontFamily);
-    });
-    document.documentElement.classList.add('mirror-fallback-fonts');
-  }
-  if (!document.fonts || !document.fonts.load) return;
-  Promise.all([document.fonts.load('16px ofelia-display'), document.fonts.load('16px the-seasons')])
-    .then(function (res) { if (!res[0].length && !res[1].length) swap(); })
-    .catch(swap);
-})();
-"""
-
 MIRROR_CSS = """
 /* static mirror: hide backend-only controls */
 .wpcf7-turnstile, .cf-turnstile, [data-name="verification-otp"], .evcf7_send_otp, .evcf7-send-otp { display: none !important; }
@@ -182,6 +157,7 @@ def rewrite_text(txt, mirror_paths, site_url):
         original = m.group(1) + m.group(4)
         return original if original in mirror_paths else variant
     txt = RESIZED_RE.sub(fix_img, txt)
+    txt = FONT_RE.sub(lambda m: FONT_MAP[m.group(1).lower()], txt)
     return txt
 
 
@@ -206,7 +182,9 @@ def clean_html(html, page_url, site_url, cfg):
                 'script#evcf7-front-script-js', 'script#evcf7-front-script-js-extra',
                 'script#wpcf7-redirect-script-js', 'script#wpcf7-redirect-script-js-extra',
                 'script#cloudflare-turnstile-js', 'script#cloudflare-turnstile-js-after',
-                'script#akismet-frontend-js', 'link#evcf7-front-style-css', 'link#wpcf7-redirect-script-frontend-css']:
+                'script#akismet-frontend-js', 'link#evcf7-front-style-css', 'link#wpcf7-redirect-script-frontend-css',
+                # Adobe Fonts kit (domain-restricted) -> replaced by Google Fonts below
+                'link[href*="use.typekit.net"]', 'link[href*="typekit.net"]']:
         for el in soup.select(sel):
             el.decompose()
     # comment forms post to wp-comments-post.php
@@ -221,6 +199,15 @@ def clean_html(html, page_url, site_url, cfg):
                 el[key] = site_url.rstrip("/") + v
     # mirror helpers
     head = soup.head or soup
+    first_css = head.find("link", rel="stylesheet")
+    pre1 = soup.new_tag("link", rel="preconnect", href="https://fonts.googleapis.com")
+    pre2 = soup.new_tag("link", rel="preconnect", href="https://fonts.gstatic.com", crossorigin="")
+    gf = soup.new_tag("link", rel="stylesheet", href=GOOGLE_FONTS_CSS, id="mirror-google-fonts")
+    for tag in (gf, pre2, pre1):
+        if first_css is not None:
+            first_css.insert_before(tag)
+        else:
+            head.append(tag)
     style = soup.new_tag("style", id="mirror-css"); style.string = MIRROR_CSS
     head.append(style)
     body = soup.body or soup
@@ -229,8 +216,6 @@ def clean_html(html, page_url, site_url, cfg):
     body.append(conf)
     js = soup.new_tag("script", src="/mirror/forms.js", id="mirror-forms-js")
     body.append(js)
-    fj = soup.new_tag("script", src="/mirror/fonts.js", id="mirror-fonts-js")
-    body.append(fj)
     note = f"<!-- static mirror of {page_url} built {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} -->"
     return str(soup).replace("</html>", note + "\n</html>", 1)
 
@@ -401,7 +386,6 @@ def main():
     # ---- helpers, redirects, sitemap, robots, 404 ---------------------------------------
     os.makedirs(os.path.join(out, "mirror"), exist_ok=True)
     open(os.path.join(out, "mirror", "forms.js"), "w", encoding="utf-8").write(FORMS_JS)
-    open(os.path.join(out, "mirror", "fonts.js"), "w", encoding="utf-8").write(FONTS_JS)
     with open(os.path.join(out, "_redirects"), "w") as f:
         for a, b in redirects:
             f.write(f"{a} {b} 301\n")

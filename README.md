@@ -26,8 +26,8 @@ python3 -m http.server -d dist 8080      # preview at http://localhost:8080
   Rank Math, Popup Maker, Ultimate Image Gallery, hosted on Hostinger.
 - Contact: yamunahomes16@gmail.com · +91 88844 39155 · WhatsApp wa.me/918884439155 ·
   1st Floor, Nalapad Building, Mallikatta, Kadri, Mangalore 575003.
-- Fonts: Adobe Fonts kit `nmv4gyz` (Ofelia Display, The Seasons); the mirror falls back to Google Fonts
-  if the kit does not serve the new domain.
+- Fonts: the original used Adobe Fonts kit `nmv4gyz` (Ofelia Display, The Seasons); the mirror uses
+  Nunito Sans and Cormorant Garamond from Google Fonts instead (no Adobe account needed).
 - Analytics: GTM `GTM-NXVV44J6`, GA4 `G-YWB3RH6HGV`, Microsoft Clarity.
 
 ## Full backup
