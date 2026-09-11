@@ -114,8 +114,29 @@ def misc_checks(base, is_prod, host_features=True):
     urls = re.findall(r"<loc>(.*?)</loc>", r.text) if r.status_code == 200 else []
     check("sitemap.xml lists the pages", r.status_code == 200 and len(urls) >= 50, f"{len(urls)} urls")
     r = get(base + "/robots.txt", allow_redirects=True)
-    want = "Allow: /" if is_prod else "Disallow: /"
-    check("robots.txt matches environment", r.status_code == 200 and want in r.text, r.text.strip().replace("\n", " | ")[:80])
+    txt = r.text if r.status_code == 200 else ""
+    if is_prod:
+        # Parse the generic and Googlebot groups; Cloudflare may prepend a managed AI-crawler block.
+        groups, cur = {}, None
+        for line in txt.splitlines():
+            line = line.split("#", 1)[0].strip()
+            if not line:
+                continue
+            k, _, v = line.partition(":")
+            k, v = k.strip().lower(), v.strip()
+            if k == "user-agent":
+                cur = v.lower(); groups.setdefault(cur, [])
+            elif k in ("allow", "disallow") and cur is not None:
+                groups[cur].append((k, v))
+        google = groups.get("googlebot", groups.get("*", []))
+        blocked = any(k == "disallow" and v in ("/", "/*") for k, v in google)
+        has_sitemap = "sitemap:" in txt.lower() and "/sitemap.xml" in txt
+        check("robots.txt lets Googlebot crawl the site", r.status_code == 200 and not blocked, "; ".join(f"{k} {v}" for k, v in google)[:80] or "no rules")
+        check("robots.txt advertises sitemap.xml", has_sitemap)
+        ai_block = any(ua in groups and any(k == "disallow" for k, _ in groups[ua]) for ua in ("gptbot", "claudebot", "google-extended", "ccbot"))
+        print(("INFO AI crawlers are blocked by Cloudflare's managed robots.txt (owner decision)" if ai_block else "INFO AI crawlers are not blocked"), flush=True)
+    else:
+        check("robots.txt blocks crawlers on the preview", r.status_code == 200 and "Disallow: /" in txt, txt.strip().replace("\n", " | ")[:80])
     r = get(base + "/wp-admin/admin-ajax.php", allow_redirects=True)
     check("WordPress AJAX endpoint answers '0' (never a page)", r.status_code == 200 and r.text.strip() == "0", r.text[:40])
     if not host_features:
