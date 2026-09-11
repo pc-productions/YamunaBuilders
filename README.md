@@ -8,6 +8,7 @@ rebuild it later, independent of the agency that ran the original WordPress site
 | `archive/yamunabuilders.com/` | Full snapshot of the live site (Sept 2026): every page's HTML, all copy in `SITE-CONTENT.md`, the media library, theme/plugin assets, WordPress API dumps, `manifest.json`. |
 | `scripts/build_mirror.py` | Builds a deployable static copy of the site into `dist/` (see `docs/MIRROR_HOSTING.md`). |
 | `scripts/scrape_yamunabuilders.py` | The crawler that produced the archive; re-run via the Actions workflow to refresh. |
+| `scripts/site_check.py` + `docs/SITE_CHECKUP.md` | Health check of production and staging (`python3 scripts/site_check.py [--staging]`). |
 | `docs/MIRROR_HOSTING.md` | How to host the mirror for free (Cloudflare Pages), what differs from the live site, domain notes. |
 | `docs/WORDPRESS_EXPORT_GUIDE.md` | What was exported from wp-admin and where the full UpdraftPlus backup lives (Google Drive). |
 | `.github/workflows/` | `deploy.yml` (build + deploy to Cloudflare on every push to `main`), `scrape-yamunabuilders.yml` (refresh the archive: **only meaningful while the agency's WordPress site is still what yamunabuilders.com serves**; after the domain points at this mirror the crawler would only copy the mirror), `transcode-videos.yml` (web-sized videos), `fetch-url.yml` (helper). |
