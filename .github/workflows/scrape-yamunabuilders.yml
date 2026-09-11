@@ -1,0 +1,71 @@
+name: Scrape yamunabuilders.com archive
+
+on:
+  workflow_dispatch:
+    inputs:
+      download_assets:
+        description: "Download images/PDF/CSS/JS assets (not just URLs)"
+        type: boolean
+        default: true
+      force_wayback:
+        description: "Skip the live site and archive from the Wayback Machine"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scrape-yamunabuilders
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 html2text lxml brotli
+
+      - name: Diagnostics (how the site answers this runner)
+        run: |
+          echo "--- plain browser UA"
+          curl -sS -m 30 -o /dev/null -D - -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" https://yamunabuilders.com/ || true
+          echo "--- curl default UA"
+          curl -sS -m 30 -o /dev/null -D - https://yamunabuilders.com/ || true
+          echo "--- wayback availability"
+          curl -sS -m 30 "https://archive.org/wayback/available?url=yamunabuilders.com" || true
+          echo
+
+      - name: Crawl site
+        run: |
+          set -o pipefail
+          mkdir -p archive/yamunabuilders.com
+          FLAGS=""
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.download_assets }}" = "false" ]; then FLAGS="--no-assets"; fi
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_wayback }}" = "true" ]; then export FORCE_WAYBACK=1; fi
+          python scripts/scrape_yamunabuilders.py $FLAGS 2>&1 | tee archive/yamunabuilders.com/run.log
+
+      - name: Summary
+        run: |
+          du -sh archive/yamunabuilders.com
+          find archive/yamunabuilders.com -type f | wc -l
+          ls archive/yamunabuilders.com
+          tail -5 archive/yamunabuilders.com/run.log
+
+      - name: Commit archive to branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A archive/yamunabuilders.com
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -m "chore(archive): snapshot of yamunabuilders.com ($(date -u +%Y-%m-%d))"
+          git push origin HEAD:${{ github.ref_name }}

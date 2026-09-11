@@ -1,0 +1,407 @@
+[
+ {
+  "id": 129,
+  "count": 0,
+  "description": "",
+  "link": "https://yamunabuilders.com/category/builder-news-announcements/",
+  "name": "Builder News &amp; Announcements",
+  "slug": "builder-news-announcements",
+  "taxonomy": "category",
+  "parent": 0,
+  "meta": [],
+  "_links": {
+   "self": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories/129",
+     "targetHints": {
+      "allow": [
+       "GET"
+      ]
+     }
+    }
+   ],
+   "collection": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories"
+    }
+   ],
+   "about": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/taxonomies/category"
+    }
+   ],
+   "wp:post_type": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/posts?categories=129"
+    }
+   ],
+   "curies": [
+    {
+     "name": "wp",
+     "href": "https://api.w.org/{rel}",
+     "templated": true
+    }
+   ]
+  }
+ },
+ {
+  "id": 131,
+  "count": 23,
+  "description": "",
+  "link": "https://yamunabuilders.com/category/news-announcement/",
+  "name": "News &amp; Announcement",
+  "slug": "news-announcement",
+  "taxonomy": "category",
+  "parent": 0,
+  "meta": [],
+  "_links": {
+   "self": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories/131",
+     "targetHints": {
+      "allow": [
+       "GET"
+      ]
+     }
+    }
+   ],
+   "collection": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories"
+    }
+   ],
+   "about": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/taxonomies/category"
+    }
+   ],
+   "wp:post_type": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/posts?categories=131"
+    }
+   ],
+   "curies": [
+    {
+     "name": "wp",
+     "href": "https://api.w.org/{rel}",
+     "templated": true
+    }
+   ]
+  }
+ },
+ {
+  "id": 130,
+  "count": 0,
+  "description": "",
+  "link": "https://yamunabuilders.com/category/news-and-announcement/",
+  "name": "News and Announcement",
+  "slug": "news-and-announcement",
+  "taxonomy": "category",
+  "parent": 0,
+  "meta": [],
+  "_links": {
+   "self": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories/130",
+     "targetHints": {
+      "allow": [
+       "GET"
+      ]
+     }
+    }
+   ],
+   "collection": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories"
+    }
+   ],
+   "about": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/taxonomies/category"
+    }
+   ],
+   "wp:post_type": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/posts?categories=130"
+    }
+   ],
+   "curies": [
+    {
+     "name": "wp",
+     "href": "https://api.w.org/{rel}",
+     "templated": true
+    }
+   ]
+  }
+ },
+ {
+  "id": 125,
+  "count": 2,
+  "description": "",
+  "link": "https://yamunabuilders.com/category/our-story/",
+  "name": "Our Story",
+  "slug": "our-story",
+  "taxonomy": "category",
+  "parent": 0,
+  "meta": [],
+  "_links": {
+   "self": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories/125",
+     "targetHints": {
+      "allow": [
+       "GET"
+      ]
+     }
+    }
+   ],
+   "collection": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories"
+    }
+   ],
+   "about": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/taxonomies/category"
+    }
+   ],
+   "wp:post_type": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/posts?categories=125"
+    }
+   ],
+   "curies": [
+    {
+     "name": "wp",
+     "href": "https://api.w.org/{rel}",
+     "templated": true
+    }
+   ]
+  }
+ },
+ {
+  "id": 127,
+  "count": 1,
+  "description": "",
+  "link": "https://yamunabuilders.com/category/projects/",
+  "name": "Projects",
+  "slug": "projects",
+  "taxonomy": "category",
+  "parent": 0,
+  "meta": [],
+  "_links": {
+   "self": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories/127",
+     "targetHints": {
+      "allow": [
+       "GET"
+      ]
+     }
+    }
+   ],
+   "collection": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories"
+    }
+   ],
+   "about": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/taxonomies/category"
+    }
+   ],
+   "wp:post_type": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/posts?categories=127"
+    }
+   ],
+   "curies": [
+    {
+     "name": "wp",
+     "href": "https://api.w.org/{rel}",
+     "templated": true
+    }
+   ]
+  }
+ },
+ {
+  "id": 1,
+  "count": 0,
+  "description": "",
+  "link": "https://yamunabuilders.com/category/uncategorized/",
+  "name": "Uncategorized",
+  "slug": "uncategorized",
+  "taxonomy": "category",
+  "parent": 0,
+  "meta": [],
+  "_links": {
+   "self": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories/1",
+     "targetHints": {
+      "allow": [
+       "GET"
+      ]
+     }
+    }
+   ],
+   "collection": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories"
+    }
+   ],
+   "about": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/taxonomies/category"
+    }
+   ],
+   "wp:post_type": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/posts?categories=1"
+    }
+   ],
+   "curies": [
+    {
+     "name": "wp",
+     "href": "https://api.w.org/{rel}",
+     "templated": true
+    }
+   ]
+  }
+ },
+ {
+  "id": 132,
+  "count": 2,
+  "description": "",
+  "link": "https://yamunabuilders.com/category/yamuna-homes-and-designs/",
+  "name": "Yamuna Homes and Designs",
+  "slug": "yamuna-homes-and-designs",
+  "taxonomy": "category",
+  "parent": 0,
+  "meta": [],
+  "_links": {
+   "self": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories/132",
+     "targetHints": {
+      "allow": [
+       "GET"
+      ]
+     }
+    }
+   ],
+   "collection": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories"
+    }
+   ],
+   "about": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/taxonomies/category"
+    }
+   ],
+   "wp:post_type": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/posts?categories=132"
+    }
+   ],
+   "curies": [
+    {
+     "name": "wp",
+     "href": "https://api.w.org/{rel}",
+     "templated": true
+    }
+   ]
+  }
+ },
+ {
+  "id": 134,
+  "count": 1,
+  "description": "",
+  "link": "https://yamunabuilders.com/category/yamuna-kamaldeep-twin-tower/",
+  "name": "Yamuna Kamaldeep Twin Tower",
+  "slug": "yamuna-kamaldeep-twin-tower",
+  "taxonomy": "category",
+  "parent": 0,
+  "meta": [],
+  "_links": {
+   "self": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories/134",
+     "targetHints": {
+      "allow": [
+       "GET"
+      ]
+     }
+    }
+   ],
+   "collection": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories"
+    }
+   ],
+   "about": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/taxonomies/category"
+    }
+   ],
+   "wp:post_type": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/posts?categories=134"
+    }
+   ],
+   "curies": [
+    {
+     "name": "wp",
+     "href": "https://api.w.org/{rel}",
+     "templated": true
+    }
+   ]
+  }
+ },
+ {
+  "id": 126,
+  "count": 6,
+  "description": "",
+  "link": "https://yamunabuilders.com/category/yamuna-sky-city/",
+  "name": "Yamuna Sky City",
+  "slug": "yamuna-sky-city",
+  "taxonomy": "category",
+  "parent": 0,
+  "meta": [],
+  "_links": {
+   "self": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories/126",
+     "targetHints": {
+      "allow": [
+       "GET"
+      ]
+     }
+    }
+   ],
+   "collection": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/categories"
+    }
+   ],
+   "about": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/taxonomies/category"
+    }
+   ],
+   "wp:post_type": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/posts?categories=126"
+    }
+   ],
+   "curies": [
+    {
+     "name": "wp",
+     "href": "https://api.w.org/{rel}",
+     "templated": true
+    }
+   ]
+  }
+ }
+]

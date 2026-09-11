@@ -1,0 +1,64 @@
+[
+ {
+  "id": 2,
+  "name": "Hazrath Mohammed",
+  "url": "",
+  "description": "",
+  "link": "https://yamunabuilders.com/author/hazrath/",
+  "slug": "hazrath",
+  "avatar_urls": {
+   "24": "https://secure.gravatar.com/avatar/f1b8a84b9af65469361f1859dd3da9aaca00c10d22324863f19ac0634083f062?s=24&d=mm&r=g",
+   "48": "https://secure.gravatar.com/avatar/f1b8a84b9af65469361f1859dd3da9aaca00c10d22324863f19ac0634083f062?s=48&d=mm&r=g",
+   "96": "https://secure.gravatar.com/avatar/f1b8a84b9af65469361f1859dd3da9aaca00c10d22324863f19ac0634083f062?s=96&d=mm&r=g"
+  },
+  "meta": [],
+  "_links": {
+   "self": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/users/2",
+     "targetHints": {
+      "allow": [
+       "GET"
+      ]
+     }
+    }
+   ],
+   "collection": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/users"
+    }
+   ]
+  }
+ },
+ {
+  "id": 5,
+  "name": "Yamuna Builders",
+  "url": "",
+  "description": "Yamuna Builders (Yamuna Homes &amp; Design Pvt. Ltd.) was established with a vision to redefine the real estate landscape of Karnataka by setting uncompromising standards for quality. With a foundational journey that began in 1993 through specialized drilling and earth-moving enterprises, the company brings decades of deep, ground-up expertise to every project.\r\n\r\nUnder the leadership of Managing Director Purushotham R. Shetty, Yamuna Builders witnessed how a lack of integrity and transparency in the sector could compromise a client's trust and investment. Driven by a commitment to innovation, sustainability, and excellence, the company built its reputation on closing the gap between a developer's promise and the final delivery.\r\n\r\nTheir approach ensures that every client can invest in world-class residential and commercial developments, like the landmark Yamuna Sky City, with complete confidence, knowing their home is not only a functional, luxurious space but also a reliable, high-quality asset.",
+  "link": "https://yamunabuilders.com/author/yamunapagraphics/",
+  "slug": "yamunapagraphics",
+  "avatar_urls": {
+   "24": "https://secure.gravatar.com/avatar/a3dfc3a93d2b34cc07c6e140bfe4e60d1c6ac34fd0c38101094b733097227e46?s=24&d=mm&r=g",
+   "48": "https://secure.gravatar.com/avatar/a3dfc3a93d2b34cc07c6e140bfe4e60d1c6ac34fd0c38101094b733097227e46?s=48&d=mm&r=g",
+   "96": "https://secure.gravatar.com/avatar/a3dfc3a93d2b34cc07c6e140bfe4e60d1c6ac34fd0c38101094b733097227e46?s=96&d=mm&r=g"
+  },
+  "meta": [],
+  "_links": {
+   "self": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/users/5",
+     "targetHints": {
+      "allow": [
+       "GET"
+      ]
+     }
+    }
+   ],
+   "collection": [
+    {
+     "href": "https://yamunabuilders.com/wp-json/wp/v2/users"
+    }
+   ]
+  }
+ }
+]

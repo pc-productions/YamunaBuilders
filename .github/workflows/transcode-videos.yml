@@ -1,0 +1,60 @@
+name: Transcode large archive videos for the web mirror
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  transcode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Install ffmpeg
+        run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+
+      - name: Join parts and re-encode (muted background loops, 720p, target <= 20 MB)
+        run: |
+          set -euo pipefail
+          A=archive/yamunabuilders.com
+          mkdir -p "$A/web-media"
+          python3 - <<'EOF'
+          import json, subprocess, os, glob
+          A = "archive/yamunabuilders.com"
+          m = json.load(open(f"{A}/manifest.json"))
+          for u, r in m["assets"].items():
+              if not r.get("file_parts"):
+                  continue
+              src = os.path.join(A, r["file"])
+              base = os.path.basename(src)
+              out = os.path.join(A, "web-media", base)
+              subprocess.run(f"cat {src}.part-* > {src}", shell=True, check=True)
+              dur = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                                    "-of", "csv=p=0", src], capture_output=True, text=True).stdout.strip()
+              print("source", base, r["bytes"], "bytes, duration", dur, "s")
+              for crf, height in ((30, 720), (33, 720), (36, 540), (38, 480)):
+                  subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", src, "-an",
+                                  "-vf", f"scale=-2:{height}", "-c:v", "libx264", "-crf", str(crf),
+                                  "-preset", "slow", "-pix_fmt", "yuv420p", "-movflags", "+faststart", out],
+                                 check=True)
+                  size = os.path.getsize(out)
+                  print(f"  crf {crf} {height}p -> {size} bytes")
+                  if size <= 20 * 1024 * 1024:
+                      break
+              os.remove(src)
+          EOF
+          ls -la "$A/web-media"
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A archive/yamunabuilders.com/web-media
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -m "chore(archive): web-sized versions of the large site videos"
+          git push origin HEAD:${{ github.ref_name }}
