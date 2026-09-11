@@ -390,6 +390,10 @@ def main():
         for a, b in redirects:
             f.write(f"{a} {b} 301\n")
         f.write("/index.html / 301\n")
+        # WordPress / Rank Math sitemap URLs Google already knows -> the mirror's sitemap
+        for old in ("/sitemap_index.xml", "/post-sitemap.xml", "/page-sitemap.xml",
+                    "/uig_image_gallery-sitemap.xml", "/wp-sitemap.xml", "/sitemap.xml.gz"):
+            f.write(f"{old} /sitemap.xml 301\n")
         f.write("/feed/ / 302\n")
         f.write("/wp-admin/* / 302\n")
         f.write("/wp-login.php / 302\n")
