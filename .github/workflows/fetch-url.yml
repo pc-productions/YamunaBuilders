@@ -1,0 +1,36 @@
+name: Fetch a URL into a scratch branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "URL to fetch"
+        required: true
+        type: string
+      path:
+        description: "Path to save the file at (inside the scratch branch)"
+        required: true
+        type: string
+        default: "fetched/page.md"
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch
+        run: |
+          mkdir -p "$(dirname '${{ inputs.path }}')"
+          curl -sSL --fail -A "Mozilla/5.0" "${{ inputs.url }}" -o "${{ inputs.path }}"
+          wc -c "${{ inputs.path }}"
+      - name: Commit to scratch branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B scratch/fetched
+          git add -f "${{ inputs.path }}"
+          git commit -m "fetch: ${{ inputs.url }}"
+          git push -f origin scratch/fetched
